@@ -54,12 +54,15 @@ export const getLiveSingleBus = async (req,res)=>{
 
 export const updateBusLocation = async (req,res)=>{
   try{
-    const { busId, routeNumber, lat, lng } = req.body;
+    const { busId, routeNumber,stopName, lat, lng } = req.body;
     if(!busId || !routeNumber) return res.status(400).json({ error: 'busId and routeNumber required' });
 
-    const bus = await Bus.findOneAndUpdate({ busId }, { routeNumber, lat, lng, lastUpdated: new Date(), isActive:true }, { upsert:true, new:true });
+    const bus = await Bus.findOneAndUpdate({ busId }, { routeNumber,stopName, lat, lng, lastUpdated: new Date(), isActive:true }, { upsert:true, new:true });
     // emit via socket if available
-    if(req.io) req.io.to(`route:${routeNumber}`).emit('bus:update', bus);
+
+    // 🔥 fetch all active buses in this route
+    const busesInRoute = await Bus.find({ routeNumber, isActive: true });
+    if (req.io) req.io.to(`route:${routeNumber}`).emit('route:update', busesInRoute);
     if(req.io) req.io.to(`bus:${busId}`).emit('bus:update', bus);
     res.json(bus);
   }catch(e){ console.error(e); res.status(500).json({ error: e.message }); }
