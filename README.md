@@ -1,45 +1,95 @@
 # Real-Time Bus Tracker API
 
-A real-time bus tracking system that provides live bus locations, ETAs, and route information through a RESTful API and WebSocket interface.
+A real-time bus tracking system that provides live bus locations, ETAs, and route information through a RESTful API and WebSocket interface. Built with Node.js, Express, MongoDB, and Socket.IO.
 
-## Features
+## ✨ Features
 
-- Real-time bus location tracking
-- Live ETA calculations
-- WebSocket support for instant updates
-- Route information and details
-- Support for multiple buses and routes
+- 🚌 Real-time bus location tracking
+- ⏱️ Live ETA calculations using Haversine formula
+- 🌐 WebSocket support for instant updates
+- 🗺️ Route information and details
+- 🔄 Support for multiple buses and routes
+- 🚦 Next stop prediction
+- 📍 Live position tracking
+- 🔄 Automatic database updates
 
-## Prerequisites
+## 🚀 Tech Stack
 
-- Node.js (v14 or higher)
-- MongoDB
-- npm or yarn
+- **Backend**: Node.js, Express
+- **Database**: MongoDB with Mongoose
+- **Real-time**: Socket.IO
+- **Geospatial Calculations**: Custom Haversine implementation
+- **Environment**: Dotenv for configuration
+- **HTTP Client**: Axios for external API calls
 
-## Installation
+## 📋 Prerequisites
 
-1. Clone the repository
+- Node.js (v16 or higher)
+- MongoDB (v5.0 or higher)
+- npm (v8.0 or higher) or yarn
+
+## 🛠️ Installation
+
+1. Clone the repository:
+   ```bash
+   git clone https://github.com/yourusername/real-time-bus-tracker.git
+   cd real-time-bus-tracker
+   ```
+
 2. Install dependencies:
    ```bash
    npm install
    ```
+
 3. Create a `.env` file in the root directory with the following variables:
-   ```
-   MONGODB_URI=your_mongodb_connection_string
+   ```env
+   MONGO_URI=mongodb://localhost:27017/bus_tracker
    PORT=5000
+   GOOGLE_MAPS_API_KEY=your_google_maps_api_key_optional
    ```
-4. Seed the database with sample data (optional):
+
+4. Seed the database with sample data:
    ```bash
    node seed/seed.js
    ```
+   This will create a sample route (Route 101) with 4 stops and 2 active buses.
+
 5. Start the server:
    ```bash
    npm start
    ```
+   The server will start on `http://localhost:5000`
 
-## API Endpoints
+## 🚏 Project Structure
 
-### Bus Endpoints
+```
+.
+├── config/               # Configuration files
+│   └── db.js            # Database connection
+├── controllers/         # Route controllers
+│   ├── busController.js # Bus-related operations
+│   └── routeController.js # Route operations
+├── models/              # Mongoose models
+│   ├── Bus.js          # Bus model
+│   └── Route.js        # Route model
+├── routes/              # API routes
+│   ├── bus.js          # Bus endpoints
+│   └── route.js        # Route endpoints
+├── seed/               # Database seeding
+│   └── seed.js         # Sample data
+├── utils/              # Utility functions
+│   ├── eta.js          # ETA calculations
+│   └── haversine.js    # Distance calculations
+├── .gitignore          # Git ignore file
+├── package.json        # Project dependencies
+├── README.md           # This file
+├── server.js           # Main server file
+└── simulator.js        # Bus simulation script
+```
+
+## 🌐 API Endpoints
+
+### 🚌 Bus Endpoints
 
 #### Get All Active Buses on a Route
 ```http
@@ -50,13 +100,15 @@ GET /api/buses/live/{routeNumber}
 ```json
 [
   {
-    "busId": "bus123",
+    "busId": "BUS101",
     "routeNumber": "101",
-    "stopName": "Central Station",
-    "lat": 12.9716,
-    "lng": 77.5946,
-    "eta": "5 min",
-    "distance": "1.2 km"
+    "routeName": "Route 101",
+    "stopName": "Stop A",
+    "lat": 22.5726,
+    "lng": 88.3639,
+    "eta": "5 mins (approx)",
+    "distance": "1.23 km",
+    "nextStopName": "Stop B"
   }
 ]
 ```
@@ -69,13 +121,15 @@ GET /api/buses/live/{routeNumber}/{busId}
 **Response:**
 ```json
 {
-  "busId": "bus123",
+  "busId": "BUS101",
   "routeNumber": "101",
-  "stopName": "Central Station",
-  "lat": 12.9716,
-  "lng": 77.5946,
-  "eta": "5 min",
-  "distance": "1.2 km"
+  "routeName": "Route 101",
+  "stopName": "Stop A",
+  "lat": 22.5726,
+  "lng": 88.3639,
+  "eta": "5 mins (approx)",
+  "distance": "1.23 km",
+  "nextStopName": "Stop B"
 }
 ```
 
@@ -85,10 +139,12 @@ POST /api/buses/update
 Content-Type: application/json
 
 {
-  "busId": "bus123",
+  "busId": "BUS101",
   "routeNumber": "101",
-  "lat": 12.9716,
-  "lng": 77.5946
+  "stopName": "Stop A",
+  "nextStopName": "Stop B",
+  "lat": 22.5726,
+  "lng": 88.3639
 }
 ```
 
@@ -96,7 +152,7 @@ Content-Type: application/json
 ```json
 {
   "_id": "...",
-  "busId": "bus123",
+  "busId": "BUS101",
   "routeNumber": "101",
   "lat": 12.9716,
   "lng": 77.5946,
